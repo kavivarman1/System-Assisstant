@@ -1,0 +1,121 @@
+import google.generativeai as genai
+import json
+
+# ✅ Configure Gemini API
+genai.configure(api_key="AIzaSyAtXuWSwRgvL-4DCr4-9DNt5q39o1xtjFc")  # Replace with your actual key
+
+# ✅ Load Gemini model
+model = genai.GenerativeModel('gemini-1.5-pro-latest')
+
+# ✅ System prompt to guide Gemini
+intro_prompt = """
+You are an AI assistant that:
+1. Chats like a smart assistant.
+2. Detects file operations (like open, delete, move, copy, paste) and filenames (like report.pdf, notes.txt).
+
+Instructions:
+- Your goal is to extract one or more valid file operations and associated filenames.
+- File **operation** and **filename** are required.
+- If the user says "open a file", but doesn't give a filename, ask naturally for the filename.
+- If optional info like file extension or folder is missing, ask nicely. But if the user says "I don't know", just move on.
+- Once you have one or more operation-filename pairs, respond with an array like:
+
+[
+  {"operation": "copy", "filename": "file1.txt"},
+  {"operation": "paste", "filename": "folder1"},
+  {"operation": "open", "filename": "folder1/file1.txt"}
+]
+
+- DO NOT output the array until all required fields are known for all operations.
+- DO NOT repeat questions about missing info if user already said "I don’t know".
+"""
+
+# ✅ Start chat
+chat = model.start_chat(history=[])
+chat.send_message(intro_prompt)
+
+# ✅ Track history and collected state
+full_history = []
+collected_info = {"operation": None, "filename": None}
+
+# List to store multiple operations and filenames
+operations_list = []
+
+def handle_input(user_input):
+    global collected_info, operations_list
+
+    full_history.append(f"User: {user_input}")
+    response = chat.send_message(user_input)
+    bot_reply = response.text.strip()
+    full_history.append(f"Gemini: {bot_reply}")
+
+    print(f"🤖 Gemini says:\n{bot_reply}")
+
+    # ✅ Look for array-style list of operations
+    try:
+        json_start = bot_reply.find("[")
+        json_end = bot_reply.rfind("]") + 1
+        if json_start != -1 and json_end != -1:
+            json_text = bot_reply[json_start:json_end]
+            data = json.loads(json_text)
+
+            if isinstance(data, list) and all("operation" in d and "filename" in d for d in data):
+                # Add the extracted operations to the list
+                operations_list.extend(data)
+
+                # Print current in-progress workflow
+                print("\n📂 Current Workflow (in progress):")
+                for item in operations_list:
+                    print(item)
+
+                # Print the updated list
+                print(f"\n📂 Full Operations List:")
+                for item in operations_list:
+                    print(item)
+
+                return
+    except json.JSONDecodeError:
+        pass  # If no array found, continue to single operation handling
+
+    # ✅ Fallback to single JSON object if no array is found
+    try:
+        json_start = bot_reply.find("{")
+        json_end = bot_reply.rfind("}") + 1
+        if json_start != -1 and json_end != -1:
+            json_text = bot_reply[json_start:json_end]
+            data = json.loads(json_text)
+            operation = data.get("operation")
+            filename = data.get("filename")
+
+            if operation and filename:
+                # Add to workflow list
+                collected_info["operation"] = operation
+                collected_info["filename"] = filename
+                operations_list.append(collected_info)
+
+                # Print current in-progress workflow
+                print("\n📂 Current Workflow (in progress):")
+                for item in operations_list:
+                    print(item)
+
+                # Print final info for this step
+                print(f"\n📂 Final Extracted Info:")
+                print(collected_info)
+
+                collected_info = {"operation": None, "filename": None}  # reset
+                return
+    except json.JSONDecodeError:
+        pass  # Gemini hasn't finalized the details yet
+
+# ✅ Main loop
+if __name__ == "__main__":
+    print("💬 Gemini Chat Assistant Ready. Type 'exit' to quit.")
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() in ["exit", "quit"]:
+            print("\n📝 Full chat history before exit:")
+            for line in full_history:
+                print(line)
+            print("\nGoodbye! 👋")
+            break
+        handle_input(user_input)

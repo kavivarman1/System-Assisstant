@@ -1,0 +1,242 @@
+﻿<Window x:Class="ChatbotApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AI Assistant Pro" 
+        Height="700" 
+        Width="1000"
+        MinHeight="500"
+        MinWidth="800"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/DarkTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Border Background="{StaticResource WindowBackgroundBrush}"
+            CornerRadius="12"
+            BorderBrush="{StaticResource WindowBorderBrush}"
+            BorderThickness="1">
+        
+        <Border.Effect>
+            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="5" BlurRadius="20" Opacity="0.3"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom Title Bar -->
+            <Grid Grid.Row="0" Background="{StaticResource TitleBarBackgroundBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                    <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" Margin="0,0,8,0"/>
+                    <TextBlock Text="AI Assistant Pro" 
+                               FontFamily="{StaticResource MainFontFamily}"
+                               FontSize="14" 
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Window Controls -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource WindowControlButtonStyle}" 
+                            Content="⚙️" 
+                            ToolTip="Settings"
+                            Click="SettingsButton_Click"/>
+                    <Button Style="{StaticResource WindowControlButtonStyle}" 
+                            Content="🌙" 
+                            ToolTip="Toggle Theme"
+                            Click="ThemeToggleButton_Click"/>
+                    <Button Style="{StaticResource WindowControlButtonStyle}" 
+                            Content="🗕" 
+                            ToolTip="Minimize"
+                            Click="MinimizeButton_Click"/>
+                    <Button Style="{StaticResource WindowControlButtonStyle}" 
+                            Content="✕" 
+                            ToolTip="Close"
+                            Click="CloseButton_Click"/>
+                </StackPanel>
+
+                <!-- Make title bar draggable -->
+                <Rectangle Grid.ColumnSpan="2" Fill="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
+            </Grid>
+
+            <!-- Chat Area -->
+            <ScrollViewer Grid.Row="1" 
+                          Name="ChatScrollViewer"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Background="{StaticResource ChatBackgroundBrush}"
+                          Padding="0">
+                
+                <StackPanel Name="MessagesPanel" Margin="20,20,20,0">
+                    
+                    <!-- Sample Messages -->
+                    <!-- AI Message -->
+                    <Border Background="{StaticResource AiMessageBackgroundBrush}"
+                            CornerRadius="12,12,12,4"
+                            Padding="16,12"
+                            Margin="0,0,80,16"
+                            HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="6" Opacity="0.1"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Hello! I'm your AI Assistant. How can I help you today?"
+                                       FontFamily="{StaticResource MainFontFamily}"
+                                       FontSize="14"
+                                       LineHeight="20"
+                                       Foreground="{StaticResource PrimaryTextBrush}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="10:30 AM"
+                                       FontFamily="{StaticResource MainFontFamily}"
+                                       FontSize="11"
+                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                       HorizontalAlignment="Right"
+                                       Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- User Message -->
+                    <Border Background="{StaticResource UserMessageBackgroundBrush}"
+                            CornerRadius="12,12,4,12"
+                            Padding="16,12"
+                            Margin="80,0,0,16"
+                            HorizontalAlignment="Right">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="6" Opacity="0.1"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Can you help me write a professional email?"
+                                       FontFamily="{StaticResource MainFontFamily}"
+                                       FontSize="14"
+                                       LineHeight="20"
+                                       Foreground="White"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="10:31 AM"
+                                       FontFamily="{StaticResource MainFontFamily}"
+                                       FontSize="11"
+                                       Foreground="#B0FFFFFF"
+                                       HorizontalAlignment="Right"
+                                       Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- AI Message -->
+                    <Border Background="{StaticResource AiMessageBackgroundBrush}"
+                            CornerRadius="12,12,12,4"
+                            Padding="16,12"
+                            Margin="0,0,80,16"
+                            HorizontalAlignment="Left">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="6" Opacity="0.1"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Of course! I'd be happy to help you write a professional email. Could you tell me:"
+                                       FontFamily="{StaticResource MainFontFamily}"
+                                       FontSize="14"
+                                       LineHeight="20"
+                                       Foreground="{StaticResource PrimaryTextBrush}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="• Who you're writing to&#10;• The purpose of the email&#10;• Any specific points you want to include"
+                                       FontFamily="{StaticResource MainFontFamily}"
+                                       FontSize="14"
+                                       LineHeight="20"
+                                       Foreground="{StaticResource PrimaryTextBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,8,0,0"/>
+                            <TextBlock Text="10:31 AM"
+                                       FontFamily="{StaticResource MainFontFamily}"
+                                       FontSize="11"
+                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                       HorizontalAlignment="Right"
+                                       Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Input Area -->
+            <Border Grid.Row="2" 
+                    Background="{StaticResource InputAreaBackgroundBrush}"
+                    BorderBrush="{StaticResource InputAreaBorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="20,16,20,20">
+                
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Voice Input Button -->
+                    <Button Grid.Column="0" 
+                            Style="{StaticResource IconButtonStyle}"
+                            Content="🎤"
+                            ToolTip="Voice Input"
+                            Margin="0,0,12,0"
+                            Click="VoiceButton_Click"/>
+
+                    <!-- Text Input -->
+                    <Border Grid.Column="1" 
+                            Background="{StaticResource InputBackgroundBrush}"
+                            BorderBrush="{StaticResource InputBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                        <TextBox Name="MessageTextBox"
+                                 Style="{StaticResource InputTextBoxStyle}"
+                                 Text=""
+                                 FontFamily="{StaticResource MainFontFamily}"
+                                 FontSize="14"
+                                 Foreground="{StaticResource PrimaryTextBrush}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="16,12"
+                                 VerticalContentAlignment="Center"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MaxHeight="100"
+                                 KeyDown="MessageTextBox_KeyDown"/>
+                    </Border>
+
+                    <!-- Send Button -->
+                    <Button Grid.Column="2" 
+                            Style="{StaticResource SendButtonStyle}"
+                            Content="➤"
+                            ToolTip="Send Message"
+                            Margin="12,0,0,0"
+                            Click="SendButton_Click"/>
+
+                    <!-- Attachment Button -->
+                    <Button Grid.Column="3" 
+                            Style="{StaticResource IconButtonStyle}"
+                            Content="📎"
+                            ToolTip="Attach File"
+                            Margin="8,0,0,0"
+                            Click="AttachButton_Click"/>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Border>
+</Window>
