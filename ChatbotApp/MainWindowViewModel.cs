@@ -3,14 +3,17 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using System.Threading.Tasks;
 
 namespace ChatbotApp
 {
-    public class MainWindowViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
-        private string _currentMessage;
+        private string _currentMessage = string.Empty;
         private bool _isTyping;
         private bool _isDarkTheme;
+        private PythonChatbotBridge chatbotBridge;
+        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
 
         public MainWindowViewModel()
         {
@@ -22,9 +25,7 @@ namespace ChatbotApp
             ThemeToggleCommand = new RelayCommand(ToggleTheme);
             
             IsDarkTheme = true;
-            
-            // Add sample messages
-            LoadSampleMessages();
+            chatbotBridge = new PythonChatbotBridge();
         }
 
         public ObservableCollection<ChatMessage> Messages { get; }
@@ -66,36 +67,12 @@ namespace ChatbotApp
         public ICommand SettingsCommand { get; }
         public ICommand ThemeToggleCommand { get; }
 
-        private void LoadSampleMessages()
-        {
-            Messages.Add(new ChatMessage
-            {
-                Content = "Hello! I'm your AI Assistant. How can I help you today?",
-                IsFromUser = false,
-                Timestamp = DateTime.Now.AddMinutes(-5)
-            });
-
-            Messages.Add(new ChatMessage
-            {
-                Content = "Can you help me write a professional email?",
-                IsFromUser = true,
-                Timestamp = DateTime.Now.AddMinutes(-4)
-            });
-
-            Messages.Add(new ChatMessage
-            {
-                Content = "Of course! I'd be happy to help you write a professional email. Could you tell me:\n\n• Who you're writing to\n• The purpose of the email\n• Any specific points you want to include",
-                IsFromUser = false,
-                Timestamp = DateTime.Now.AddMinutes(-4)
-            });
-        }
-
         private bool CanSendMessage(object parameter)
         {
             return !string.IsNullOrWhiteSpace(CurrentMessage) && !IsTyping;
         }
 
-        private void SendMessage(object parameter)
+        public async void SendMessage(object parameter)
         {
             if (string.IsNullOrWhiteSpace(CurrentMessage))
                 return;
@@ -111,47 +88,27 @@ namespace ChatbotApp
             var userMessage = CurrentMessage;
             CurrentMessage = string.Empty;
 
-            // Simulate AI response
-            SimulateAIResponse(userMessage);
-        }
-
-        private async void SimulateAIResponse(string userMessage)
-        {
             IsTyping = true;
-
-            // Simulate processing delay
-            await System.Threading.Tasks.Task.Delay(1500);
-
-            // Generate response
-            var response = GenerateAIResponse(userMessage);
-
-            Messages.Add(new ChatMessage
+            try
             {
-                Content = response,
-                IsFromUser = false,
-                Timestamp = DateTime.Now
-            });
-
+                string aiResponse = await chatbotBridge.SendMessageAsync(userMessage);
+                Messages.Add(new ChatMessage
+                {
+                    Content = aiResponse,
+                    IsFromUser = false,
+                    Timestamp = DateTime.Now
+                });
+            }
+            catch (Exception ex)
+            {
+                Messages.Add(new ChatMessage
+                {
+                    Content = $"[Error communicating with Gemini: {ex.Message}]",
+                    IsFromUser = false,
+                    Timestamp = DateTime.Now
+                });
+            }
             IsTyping = false;
-        }
-
-        private string GenerateAIResponse(string userMessage)
-        {
-            // Simple response generator for demo purposes
-            var responses = new string[]
-            {
-                "I understand your question. Let me help you with that.",
-                "That's an interesting point. Here's what I think about it...",
-                "I can definitely assist you with that. Let me provide you with some information.",
-                "Thank you for your question. Based on what you've asked, I would suggest...",
-                "I'm here to help! Let me break this down for you step by step.",
-                "Great question! Here's how I would approach this problem...",
-                "I can help you with that. Let me provide you with a detailed explanation.",
-                "That's a thoughtful question. Here's my perspective on it..."
-            };
-
-            var random = new Random();
-            return responses[random.Next(responses.Length)];
         }
 
         private void StartVoiceInput(object parameter)
@@ -179,19 +136,23 @@ namespace ChatbotApp
             // Theme switching logic would be implemented here
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void Dispose()
+        {
+            chatbotBridge?.Dispose();
         }
     }
 
     public class ChatMessage : INotifyPropertyChanged
     {
-        private string _content;
+        private string _content = string.Empty;
         private bool _isFromUser;
         private DateTime _timestamp;
+        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
 
         public string Content
         {
@@ -225,8 +186,6 @@ namespace ChatbotApp
         }
 
         public string TimeString => Timestamp.ToString("HH:mm");
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

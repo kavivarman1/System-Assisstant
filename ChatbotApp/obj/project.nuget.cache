@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "OGbj1w9c4gU=",
+  "dgSpecHash": "qDxSAa9x4jk=",
   "success": true,
   "projectFilePath": "D:\\sys_bot_gemini\\ChatbotApp\\ChatbotApp.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Kavivarman\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
   "logs": []
 }

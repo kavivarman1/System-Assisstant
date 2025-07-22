@@ -41,7 +41,6 @@ def parse_time_input(input_str):
     elif input_str == "new":
         return now - timedelta(days=7), now
 
-    # Custom range: from June 2024 to July 2024
     match_range = re.match(r'from (.+?) to (.+)', input_str)
     if match_range:
         try:
@@ -51,7 +50,6 @@ def parse_time_input(input_str):
         except:
             pass
 
-    # Specific date: files on 8 January 2025
     match_day = re.search(r'(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})', input_str)
     if match_day:
         try:
@@ -60,7 +58,6 @@ def parse_time_input(input_str):
         except:
             pass
 
-    # Pattern like: all files on 8th 2024
     match_day_any_month = re.match(r'all files on (\d{1,2})(st|nd|rd|th)?\s+(\d{4})', input_str)
     if match_day_any_month:
         day = int(match_day_any_month.group(1))
@@ -73,9 +70,8 @@ def parse_time_input(input_str):
                 date_ranges.append((start, end))
             except:
                 continue
-        return date_ranges  # multiple ranges
+        return date_ranges
 
-    # Pattern: files created in [month] [year]
     match_month_year = re.match(r'files? (?:created|modified) in ([a-zA-Z]+)\s+(\d{4})', input_str)
     if match_month_year:
         try:
@@ -91,7 +87,6 @@ def parse_time_input(input_str):
         except:
             pass
 
-    # Pattern: files from [X] days ago
     match_days_ago = re.match(r'files? from (\d+)\s+days?\s+ago', input_str)
     if match_days_ago:
         try:
@@ -101,7 +96,6 @@ def parse_time_input(input_str):
         except:
             pass
 
-    # Pattern: files modified in the last [X] hours
     match_hours = re.match(r'files? (?:modified|created) in the last (\d+)\s+hours?', input_str)
     if match_hours:
         try:
@@ -125,7 +119,7 @@ def get_all_drives():
         drives = ['/']
     return drives
 
-# ---------- WINDOWS SEARCH API ----------
+# ---------- WINDOWS SEARCH ----------
 def search_using_windows_index(name, search_type='both', time_start=None, time_end=None):
     matches = []
     connection = win32com.client.Dispatch("ADODB.Connection")
@@ -163,7 +157,7 @@ def search_using_windows_index(name, search_type='both', time_start=None, time_e
         print(f"\u26a0\ufe0f Windows Search failed. Error: {e}")
     return matches
 
-# ---------- OS WALK SEARCH ----------
+# ---------- OS WALK ----------
 EXCLUDED_DIRS = ['Windows', 'Program Files', 'Program Files (x86)', '$Recycle.Bin',
                  'System Volume Information', 'AppData', 'Microsoft']
 
@@ -249,25 +243,13 @@ def copy_item(source, destination):
     except Exception as e:
         print(f"Error copying item: {e}")
 
-# ---------- ENHANCED OPERATION EXECUTOR WITH TIMING ----------
+# ---------- ENHANCED OPERATION EXECUTOR ----------
 def execute_operation_with_timing(operation, filename, timing=None):
-    """
-    Execute file operations with timing support.
-    
-    Args:
-        operation (str): The operation to perform (open, search, copy)
-        filename (str): The filename or search term
-        timing (str): Optional timing filter (e.g., "today", "yesterday", "from June 2024 to July 2024")
-    
-    Returns:
-        dict: Result with status, message, and optional matches
-    """
     try:
-        # Parse timing if provided
         time_start = None
         time_end = None
         multiple_ranges = None
-        
+
         if timing:
             result = parse_time_input(timing)
             if isinstance(result, tuple) and all(isinstance(i, datetime) for i in result):
@@ -277,74 +259,65 @@ def execute_operation_with_timing(operation, filename, timing=None):
                 time_start = time_end = None
                 multiple_ranges = result
             else:
-                # Invalid timing format
                 return {
                     "status": "error",
                     "message": f"Invalid timing format: '{timing}'. Supported formats: today, yesterday, last week, last month, specific dates, or date ranges."
                 }
-        
-        # Determine search type based on filename
+
         search_type = 'both'
         if filename.startswith('.'):
             search_type = 'file'
         elif '/' in filename or '\\' in filename:
-            # If it looks like a path, search for exact match first
-            if os.path.exists(filename):
+            # ✅ Handle relative/absolute paths
+            path_check = filename
+            if not os.path.isabs(filename):
+                path_check = os.path.abspath(filename)
+
+            if os.path.exists(path_check):
                 if operation == 'open':
-                    open_path(filename)
+                    open_path(path_check)
                     return {
                         "status": "success",
-                        "message": f"✅ Opened: {filename}",
-                        "path": filename
+                        "message": f"✅ Opened: {path_check}",
+                        "path": path_check
                     }
                 elif operation == 'search':
                     return {
                         "status": "success",
-                        "message": f"✅ Found: {filename}",
-                        "path": filename
+                        "message": f"✅ Found: {path_check}",
+                        "path": path_check
                     }
-        
-        # Search for files/folders
+
         matches = search_files_and_folders(filename, search_type, time_start, time_end, multiple_ranges)
-        
+
         if not matches:
             timing_info = f" with timing '{timing}'" if timing else ""
             return {
                 "status": "not_found",
                 "message": f"❌ No files found matching '{filename}'{timing_info}"
             }
-        
         elif len(matches) == 1:
             match = matches[0]
-            timing_info = f" with timing '{timing}'" if timing else ""
-            
             if operation == 'open':
                 open_path(match)
                 return {
                     "status": "success",
-                    "message": f"✅ Opened: {match}{timing_info}",
+                    "message": f"✅ Opened: {match}",
                     "path": match
                 }
-            
             elif operation == 'search':
                 return {
                     "status": "success",
-                    "message": f"✅ Found: {match}{timing_info}",
+                    "message": f"✅ Found: {match}",
                     "path": match
                 }
-            
             elif operation == 'copy':
-                # For copy operations, we need a destination
-                # This is a simplified version - in practice, you might want to ask for destination
                 return {
                     "status": "success",
-                    "message": f"✅ Found file to copy: {match}{timing_info}",
+                    "message": f"✅ Found file to copy: {match}",
                     "path": match
                 }
-        
         else:
-            # Multiple matches
-            timing_info = f" with timing '{timing}'" if timing else ""
             match_list = []
             for idx, match in enumerate(matches, 1):
                 match_list.append({
@@ -352,14 +325,13 @@ def execute_operation_with_timing(operation, filename, timing=None):
                     "path": match,
                     "name": os.path.basename(match)
                 })
-            
             return {
                 "status": "ambiguous",
-                "message": f"🔍 Found {len(matches)} files matching '{filename}'{timing_info}",
+                "message": f"🔍 Found {len(matches)} files matching '{filename}'",
                 "matches": matches,
                 "match_details": match_list
             }
-    
+
     except Exception as e:
         return {
             "status": "error",

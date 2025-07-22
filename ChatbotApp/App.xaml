@@ -1,12 +1,16 @@
 ﻿<Application x:Class="ChatbotApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:ChatbotApp"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/DarkTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <local:UserToBackgroundConverter x:Key="UserToBackgroundConverter"/>
+            <local:UserToMarginConverter x:Key="UserToMarginConverter"/>
+            <local:UserToAlignmentConverter x:Key="UserToAlignmentConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

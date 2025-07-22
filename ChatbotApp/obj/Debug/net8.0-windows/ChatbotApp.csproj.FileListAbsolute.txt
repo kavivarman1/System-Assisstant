@@ -5,6 +5,7 @@ D:\sys_bot_gemini\ChatbotApp\bin\Debug\net8.0-windows\ChatbotApp.dll
 D:\sys_bot_gemini\ChatbotApp\bin\Debug\net8.0-windows\ChatbotApp.pdb
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\MainWindow.baml
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\Styles\DarkTheme.baml
+D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\Style\LightTheme.baml
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\App.baml
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\MainWindow.g.cs
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\App.g.cs
@@ -14,9 +15,14 @@ D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.GeneratedMSBuil
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.AssemblyInfoInputs.cache
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.AssemblyInfo.cs
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.csproj.CoreCompileInputs.cache
+D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.sourcelink.json
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.dll
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\refint\ChatbotApp.dll
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.pdb
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.genruntimeconfig.cache
 D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ref\ChatbotApp.dll
-D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\Style\LightTheme.baml
+D:\sys_bot_gemini\ChatbotApp\bin\Debug\net8.0-windows\Newtonsoft.Json.dll
+D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.csproj.AssemblyReference.cache
+D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp.csproj.Up2Date
+D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
+D:\sys_bot_gemini\ChatbotApp\obj\Debug\net8.0-windows\ChatbotApp_MarkupCompile.lref

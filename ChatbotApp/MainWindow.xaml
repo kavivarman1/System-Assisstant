@@ -11,17 +11,9 @@
         AllowsTransparency="True"
         Background="Transparent">
 
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Styles/DarkTheme.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
-
-    <Border Background="{StaticResource WindowBackgroundBrush}"
+    <Border Background="{DynamicResource WindowBackgroundBrush}"
             CornerRadius="12"
-            BorderBrush="{StaticResource WindowBorderBrush}"
+            BorderBrush="{DynamicResource WindowBorderBrush}"
             BorderThickness="1">
         
         <Border.Effect>
@@ -36,7 +28,7 @@
             </Grid.RowDefinitions>
 
             <!-- Custom Title Bar -->
-            <Grid Grid.Row="0" Background="{StaticResource TitleBarBackgroundBrush}">
+            <Grid Grid.Row="0" Background="{DynamicResource TitleBarBackgroundBrush}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -44,17 +36,17 @@
 
                 <!-- Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
-                    <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" Margin="0,0,8,0"/>
+                    <Ellipse Width="8" Height="8" Fill="{DynamicResource AccentBrush}" Margin="0,0,8,0"/>
                     <TextBlock Text="AI Assistant Pro" 
-                               FontFamily="{StaticResource MainFontFamily}"
+                               FontFamily="{DynamicResource MainFontFamily}"
                                FontSize="14" 
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryTextBrush}"
+                               Foreground="{DynamicResource PrimaryTextBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Window Controls -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <!-- Window Controls (WrapPanel for responsiveness) -->
+                <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Panel.ZIndex="2">
                     <Button Style="{StaticResource WindowControlButtonStyle}" 
                             Content="⚙️" 
                             ToolTip="Settings"
@@ -71,10 +63,9 @@
                             Content="✕" 
                             ToolTip="Close"
                             Click="CloseButton_Click"/>
-                </StackPanel>
-
+                </WrapPanel>
                 <!-- Make title bar draggable -->
-                <Rectangle Grid.ColumnSpan="2" Fill="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
+                <Rectangle Grid.ColumnSpan="2" Fill="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown" Panel.ZIndex="1"/>
             </Grid>
 
             <!-- Chat Area -->
@@ -82,110 +73,53 @@
                           Name="ChatScrollViewer"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
-                          Background="{StaticResource ChatBackgroundBrush}"
+                          Background="{DynamicResource ChatBackgroundBrush}"
                           Padding="0">
                 
-                <StackPanel Name="MessagesPanel" Margin="20,20,20,0">
-                    
-                    <!-- Sample Messages -->
-                    <!-- AI Message -->
-                    <Border Background="{StaticResource AiMessageBackgroundBrush}"
-                            CornerRadius="12,12,12,4"
-                            Padding="16,12"
-                            Margin="0,0,80,16"
-                            HorizontalAlignment="Left">
-                        <Border.Effect>
-                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="6" Opacity="0.1"/>
-                        </Border.Effect>
-                        <StackPanel>
-                            <TextBlock Text="Hello! I'm your AI Assistant. How can I help you today?"
-                                       FontFamily="{StaticResource MainFontFamily}"
-                                       FontSize="14"
-                                       LineHeight="20"
-                                       Foreground="{StaticResource PrimaryTextBrush}"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="10:30 AM"
-                                       FontFamily="{StaticResource MainFontFamily}"
-                                       FontSize="11"
-                                       Foreground="{StaticResource SecondaryTextBrush}"
-                                       HorizontalAlignment="Right"
-                                       Margin="0,8,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- User Message -->
-                    <Border Background="{StaticResource UserMessageBackgroundBrush}"
-                            CornerRadius="12,12,4,12"
-                            Padding="16,12"
-                            Margin="80,0,0,16"
-                            HorizontalAlignment="Right">
-                        <Border.Effect>
-                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="6" Opacity="0.1"/>
-                        </Border.Effect>
-                        <StackPanel>
-                            <TextBlock Text="Can you help me write a professional email?"
-                                       FontFamily="{StaticResource MainFontFamily}"
-                                       FontSize="14"
-                                       LineHeight="20"
-                                       Foreground="White"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="10:31 AM"
-                                       FontFamily="{StaticResource MainFontFamily}"
-                                       FontSize="11"
-                                       Foreground="#B0FFFFFF"
-                                       HorizontalAlignment="Right"
-                                       Margin="0,8,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- AI Message -->
-                    <Border Background="{StaticResource AiMessageBackgroundBrush}"
-                            CornerRadius="12,12,12,4"
-                            Padding="16,12"
-                            Margin="0,0,80,16"
-                            HorizontalAlignment="Left">
-                        <Border.Effect>
-                            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="1" BlurRadius="6" Opacity="0.1"/>
-                        </Border.Effect>
-                        <StackPanel>
-                            <TextBlock Text="Of course! I'd be happy to help you write a professional email. Could you tell me:"
-                                       FontFamily="{StaticResource MainFontFamily}"
-                                       FontSize="14"
-                                       LineHeight="20"
-                                       Foreground="{StaticResource PrimaryTextBrush}"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="• Who you're writing to&#10;• The purpose of the email&#10;• Any specific points you want to include"
-                                       FontFamily="{StaticResource MainFontFamily}"
-                                       FontSize="14"
-                                       LineHeight="20"
-                                       Foreground="{StaticResource PrimaryTextBrush}"
-                                       TextWrapping="Wrap"
-                                       Margin="0,8,0,0"/>
-                            <TextBlock Text="10:31 AM"
-                                       FontFamily="{StaticResource MainFontFamily}"
-                                       FontSize="11"
-                                       Foreground="{StaticResource SecondaryTextBrush}"
-                                       HorizontalAlignment="Right"
-                                       Margin="0,8,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Messages}" Margin="2,2,2,0">
+                    <ItemsControl.Resources>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                        </Style>
+                    </ItemsControl.Resources>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding IsFromUser, Converter={StaticResource UserToBackgroundConverter}}"
+                                    CornerRadius="12"
+                                    Padding="16,12"
+                                    Margin="{Binding IsFromUser, Converter={StaticResource UserToMarginConverter}}"
+                                    HorizontalAlignment="{Binding IsFromUser, Converter={StaticResource UserToAlignmentConverter}}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Content}"
+                                               FontFamily="{DynamicResource MainFontFamily}"
+                                               FontSize="14"
+                                               Foreground="White"
+                                               TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding TimeString}"
+                                               FontFamily="{DynamicResource MainFontFamily}"
+                                               FontSize="11"
+                                               Foreground="#A1A1A1"
+                                               HorizontalAlignment="Right"
+                                               Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </ScrollViewer>
 
             <!-- Input Area -->
             <Border Grid.Row="2" 
-                    Background="{StaticResource InputAreaBackgroundBrush}"
-                    BorderBrush="{StaticResource InputAreaBorderBrush}"
+                    Background="{DynamicResource InputAreaBackgroundBrush}"
+                    BorderBrush="{DynamicResource InputAreaBorderBrush}"
                     BorderThickness="0,1,0,0"
-                    Padding="20,16,20,20">
+                    Padding="8,8,8,8">
                 
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto" MinWidth="40"/>
+                        <ColumnDefinition Width="*" MinWidth="80"/>
+                        <ColumnDefinition Width="Auto" MinWidth="40"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Voice Input Button -->
@@ -193,29 +127,32 @@
                             Style="{StaticResource IconButtonStyle}"
                             Content="🎤"
                             ToolTip="Voice Input"
-                            Margin="0,0,12,0"
-                            Click="VoiceButton_Click"/>
+                            Margin="0,0,8,0"
+                            Click="VoiceButton_Click"
+                            VerticalAlignment="Center"/>
 
                     <!-- Text Input -->
                     <Border Grid.Column="1" 
-                            Background="{StaticResource InputBackgroundBrush}"
-                            BorderBrush="{StaticResource InputBorderBrush}"
+                            Background="{DynamicResource InputBackgroundBrush}"
+                            BorderBrush="{DynamicResource InputBorderBrush}"
                             BorderThickness="1"
-                            CornerRadius="8">
+                            CornerRadius="8"
+                            VerticalAlignment="Center">
                         <TextBox Name="MessageTextBox"
-                                 Style="{StaticResource InputTextBoxStyle}"
-                                 Text=""
-                                 FontFamily="{StaticResource MainFontFamily}"
+                                 Style="{DynamicResource InputTextBoxStyle}"
+                                 Text="{Binding CurrentMessage, UpdateSourceTrigger=PropertyChanged}"
+                                 FontFamily="{DynamicResource MainFontFamily}"
                                  FontSize="14"
-                                 Foreground="{StaticResource PrimaryTextBrush}"
+                                 Foreground="{DynamicResource PrimaryTextBrush}"
                                  Background="Transparent"
                                  BorderThickness="0"
-                                 Padding="16,12"
+                                 Padding="8,8"
                                  VerticalContentAlignment="Center"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
                                  MaxHeight="100"
-                                 KeyDown="MessageTextBox_KeyDown"/>
+                                 KeyDown="MessageTextBox_KeyDown"
+                                 MinWidth="60"/>
                     </Border>
 
                     <!-- Send Button -->
@@ -223,16 +160,9 @@
                             Style="{StaticResource SendButtonStyle}"
                             Content="➤"
                             ToolTip="Send Message"
-                            Margin="12,0,0,0"
-                            Click="SendButton_Click"/>
-
-                    <!-- Attachment Button -->
-                    <Button Grid.Column="3" 
-                            Style="{StaticResource IconButtonStyle}"
-                            Content="📎"
-                            ToolTip="Attach File"
                             Margin="8,0,0,0"
-                            Click="AttachButton_Click"/>
+                            Click="SendButton_Click"
+                            VerticalAlignment="Center"/>
 
                 </Grid>
             </Border>

@@ -2,9 +2,12 @@ import google.generativeai as genai
 import json
 import os
 import operation_executor_window  # Updated to use the enhanced version
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+import uvicorn
 
 # ✅ Configure Gemini API
-genai.configure(api_key="AIzaSyDeABwz4vTnFLH3ZRN6cl1jw_X-6Sm2180")  # Replace with your actual key
+genai.configure(api_key="AIzaSyDLHRVTQwFqUyazT187GPQHaME7VVZu71o")  # Replace with your actual key
 
 # ✅ Load Gemini model
 model = genai.GenerativeModel('gemini-1.5-flash')
@@ -103,7 +106,7 @@ full_history = []
 operations_list = []
 file_context = {}  # Store file paths for context
 
-
+# --- Refactor handle_input to return a string response ---
 def handle_input(user_input):
     global operations_list, file_context
 
@@ -112,9 +115,7 @@ def handle_input(user_input):
     bot_reply = response.text.strip()
     full_history.append(f"Gemini: {bot_reply}")
 
-    print(f"\n🤖 Gemini says:\n{bot_reply}")
-
-    # ✅ Try extracting JSON array (preferred format)
+    # Try extracting JSON array (preferred format)
     try:
         json_start = bot_reply.find("[")
         json_end = bot_reply.rfind("]") + 1
@@ -123,23 +124,19 @@ def handle_input(user_input):
             data = json.loads(json_text)
 
             if isinstance(data, list) and all("operation" in d and "filename" in d for d in data):
-                print("\n✅ Extracted Operations (in order):")
-                for item in data:
-                    print(json.dumps(item, indent=2))
-
                 operations_list.extend(data)
-
+                responses = []
                 for item in data:
-                    process_operation(item)
-
-                print("\n📂 Full Operations List:")
-                for item in operations_list:
-                    print(item)
-                return
+                    op_result = process_operation(item)
+                    # Send SYSTEM_RESULT to Gemini and get user-facing reply
+                    system_message = f"SYSTEM_RESULT: {json.dumps(op_result)}"
+                    gemini_response = chat.send_message(system_message)
+                    responses.append(gemini_response.text.strip())
+                return "\n".join(responses)
     except json.JSONDecodeError:
         pass
 
-    # ✅ Fallback to single operation dictionary
+    # Fallback to single operation dictionary
     try:
         json_start = bot_reply.find("{")
         json_end = bot_reply.rfind("}") + 1
@@ -148,24 +145,26 @@ def handle_input(user_input):
             data = json.loads(json_text)
 
             if isinstance(data, dict) and "operation" in data and "filename" in data:
-                print("\n✅ Extracted Single Operation:")
-                print(json.dumps(data, indent=2))
-
                 operations_list.append(data)
-                process_operation(data)
-
-                print("\n📂 Full Operations List:")
-                for item in operations_list:
-                    print(item)
-                return
+                op_result = process_operation(data)
+                system_message = f"SYSTEM_RESULT: {json.dumps(op_result)}"
+                gemini_response = chat.send_message(system_message)
+                return gemini_response.text.strip()
     except json.JSONDecodeError:
         pass
 
-    print("\n❌ No valid operation extracted.")
+    # If no valid operation extracted, let Gemini generate the user-facing message
+    system_result = {
+        "status": "invalid_request",
+        "message": "Could not extract a valid operation or filename from the user input.",
+        "user_input": user_input
+    }
+    system_message = f"SYSTEM_RESULT: {json.dumps(system_result)}"
+    gemini_response = chat.send_message(system_message)
+    return gemini_response.text.strip()
 
-
+# --- Refactor process_operation to return only structured data ---
 def process_operation(operation_data):
-    """Process a single operation and communicate results with Gemini"""
     operation = operation_data["operation"]
     filename = operation_data["filename"]
     timing = operation_data.get("timing")
@@ -177,104 +176,56 @@ def process_operation(operation_data):
 
     try:
         result = operation_executor_window.execute_operation_with_timing(operation, filename, timing)
-        system_message = ""
-
-        if isinstance(result, dict):
-            status = result.get("status")
-            msg = result.get("message", "")
-
-            if status == "ambiguous" and result.get("matches"):
-                matches = result["matches"]
-                for match_path in matches:
-                    base_name = os.path.basename(match_path)
-                    file_context[base_name] = match_path
-
-                match_list = [
-                    {"index": idx + 1, "path": match, "name": os.path.basename(match)}
-                    for idx, match in enumerate(matches)
-                ]
-
-                system_message = {
-                    "status": "multiple_matches",
-                    "operation": operation,
-                    "query": filename,
-                    "timing": timing,
-                    "matches": match_list,
-                    "message": f"Found {len(matches)} possible matches for '{filename}'"
-                }
-
-                print(f"\n🔍 Multiple matches for '{filename}'" + (f" with timing '{timing}'" if timing else "") + ":")
-                for idx, match in enumerate(matches, 1):
-                    print(f"{idx}. {match}")
-
-            elif status == "not_found":
-                system_message = {
-                    "status": "not_found",
-                    "operation": operation,
-                    "query": filename,
-                    "timing": timing,
-                    "message": msg
-                }
-                print(f"\n❌ {msg}")
-
-            elif status == "success":
-                system_message = {
-                    "status": "success",
-                    "operation": operation,
-                    "query": filename,
-                    "timing": timing,
-                    "message": msg
-                }
-                print(f"\n✅ {msg}")
-
-                if result.get("path"):
-                    path = result["path"]
-                    base_name = os.path.basename(path)
-                    file_context[base_name] = path
-                    system_message["path"] = path
-                    system_message["filename"] = base_name
-
-            else:
-                system_message = {
-                    "status": status,
-                    "operation": operation,
-                    "query": filename,
-                    "timing": timing,
-                    "message": msg
-                }
-                print(f"\n{msg}")
-
-        else:
-            system_message = {
-                "status": "success" if "✅" in result else "error",
+        status = result.get("status") if isinstance(result, dict) else None
+        msg = result.get("message", "") if isinstance(result, dict) else str(result)
+        if status == "ambiguous" and result.get("matches"):
+            matches = result["matches"]
+            for match_path in matches:
+                base_name = os.path.basename(match_path)
+                file_context[base_name] = match_path
+            return {
+                "status": "ambiguous",
                 "operation": operation,
                 "query": filename,
                 "timing": timing,
-                "message": result
+                "matches": matches,
+                "message": msg
             }
-            print(f"\n{result}")
-
-            if "✅" in result and ":" in result:
-                try:
-                    path_part = result.split(":", 1)[1].strip().strip("'")
-                    if os.path.exists(path_part):
-                        base_name = os.path.basename(path_part)
-                        file_context[base_name] = path_part
-                        system_message["path"] = path_part
-                        system_message["filename"] = base_name
-                except:
-                    pass
-
-        full_history.append(f"System: {json.dumps(system_message)}")
-        chat.send_message(f"SYSTEM_RESULT: {json.dumps(system_message)}")
-
+        elif status == "not_found":
+            return {
+                "status": "not_found",
+                "operation": operation,
+                "query": filename,
+                "timing": timing,
+                "message": msg
+            }
+        elif status == "success":
+            if result.get("path"):
+                path = result["path"]
+                base_name = os.path.basename(path)
+                file_context[base_name] = path
+            return {
+                "status": "success",
+                "operation": operation,
+                "query": filename,
+                "timing": timing,
+                "message": msg,
+                "path": result.get("path")
+            }
+        else:
+            return {
+                "status": status or "unknown",
+                "operation": operation,
+                "query": filename,
+                "timing": timing,
+                "message": msg
+            }
     except Exception as e:
         error_msg = f"Error executing {operation} on {filename}"
         if timing:
             error_msg += f" with timing '{timing}'"
         error_msg += f": {str(e)}"
-
-        system_message = {
+        return {
             "status": "error",
             "operation": operation,
             "query": filename,
@@ -282,19 +233,18 @@ def process_operation(operation_data):
             "message": error_msg
         }
 
-        full_history.append(f"System: {json.dumps(system_message)}")
-        chat.send_message(f"SYSTEM_RESULT: {json.dumps(system_message)}")
+# --- FastAPI server ---
+app = FastAPI()
 
+@app.post("/chat")
+async def chat_endpoint(request: Request):
+    data = await request.json()
+    user_message = data.get("message", "")
+    if not user_message:
+        return JSONResponse({"response": "No message provided."}, status_code=400)
+    response = handle_input(user_message)
+    return {"response": response}
 
-# ✅ MAIN LOOP
 if __name__ == "__main__":
-    print("💬 Gemini Chat Assistant Ready. Type 'exit' to quit.")
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() in ["exit", "quit"]:
-            print("\n📝 Full chat history before exit:")
-            for line in full_history:
-                print(line)
-            print("\nGoodbye! 👋")
-            break
-        handle_input(user_input)
+    uvicorn.run("smart_chatbot:app", host="127.0.0.1", port=5005, reload=False)
+
